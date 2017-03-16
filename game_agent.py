@@ -7,6 +7,9 @@ You must test your agent's strength against a set of agents with known
 relative strength using tournament.py and include the results in your report.
 """
 import random
+import logging
+
+from isolation.isolation import Board
 
 
 class Timeout(Exception):
@@ -79,6 +82,7 @@ class CustomPlayer:
         self.method = method
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
+        logging.basicConfig(level=logging.DEBUG)
 
     def get_move(self, game, legal_moves, time_left):
         """Search for the best move from the available legal moves and return a
@@ -118,6 +122,10 @@ class CustomPlayer:
 
         self.time_left = time_left
 
+        if game.get_player_location(self) == Board.NOT_MOVED:
+            logging.debug('First move.')
+            return 3, 3
+
         # TODO: finish this function!
 
         # Perform any required initializations, including selecting an initial
@@ -129,11 +137,17 @@ class CustomPlayer:
             # here in order to avoid timeout. The try/except block will
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
-            pass
+            if self.method == 'minimax':
+                #score, move = self.minimax(game, self.search_depth)
+                pass
+            elif self.method == 'alphabeta':
+                pass
+            else:
+                logging.error('Unknown search method.')
+                raise NotImplementedError
 
         except Timeout:
-            # Handle any actions required at timeout, if necessary
-            pass
+            logging.error("Timeout!")
 
         # Return the best move from the last completed search iteration
         raise NotImplementedError
@@ -172,8 +186,9 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
+
         # TODO: finish this function!
-        raise NotImplementedError
+        #raise NotImplementedError
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         """Implement minimax search with alpha-beta pruning as described in the
@@ -218,3 +233,7 @@ class CustomPlayer:
 
         # TODO: finish this function!
         raise NotImplementedError
+
+
+class OpeningBook():
+    pass
