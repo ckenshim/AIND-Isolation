@@ -12,6 +12,8 @@ import unittest
 import timeit
 import sys
 
+import logging
+
 import isolation
 import game_agent
 
@@ -124,6 +126,7 @@ def makeEvalTable(table):
 
     def score(game, player):
         row, col = game.get_player_location(player)
+        #logging.debug(str(row)+", "+str(col))
         return table[row][col]
 
     return score
@@ -368,6 +371,8 @@ class Project1Test(unittest.TestCase):
         If minimax is working properly, it will visit a constant number of
         nodes during the search and return one of the acceptable legal moves.
         """
+
+        logging.basicConfig(level=logging.DEBUG)
         h, w = 7, 7  # board size
         starting_location = (2, 3)
         adversary_location = (0, 0)  # top left corner
@@ -401,6 +406,8 @@ class Project1Test(unittest.TestCase):
         # evaluation function.
         for idx in range(5):
             test_depth = idx + 1
+
+            logging.debug("Test depth: {}".format(test_depth))
             agentUT, board = self.initAUT(test_depth, heuristic,
                                           iterative_search, method,
                                           loc1=starting_location,

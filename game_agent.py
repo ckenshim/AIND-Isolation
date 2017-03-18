@@ -9,6 +9,8 @@ relative strength using tournament.py and include the results in your report.
 import random
 import logging
 
+import math
+
 from isolation.isolation import Board
 
 
@@ -40,8 +42,14 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_winner(player):
+        return 1
+
+    if game.is_loser(player):
+        return -1
+
+    # returning number of available moves as a score
+    return len(game.get_legal_moves(player))
 
 
 class CustomPlayer:
@@ -82,7 +90,6 @@ class CustomPlayer:
         self.method = method
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
-        logging.basicConfig(level=logging.DEBUG)
 
     def get_move(self, game, legal_moves, time_left):
         """Search for the best move from the available legal moves and return a
@@ -120,7 +127,11 @@ class CustomPlayer:
             (-1, -1) if there are no available legal moves.
         """
 
+        logging.debug("method: " + self.method)
         self.time_left = time_left
+
+        if not legal_moves:
+            return -1, -1
 
         if game.get_player_location(self) == Board.NOT_MOVED:
             logging.debug('First move.')
@@ -131,26 +142,30 @@ class CustomPlayer:
         # Perform any required initializations, including selecting an initial
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
-
         try:
             # The search method call (alpha beta or minimax) should happen in
             # here in order to avoid timeout. The try/except block will
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
-            if self.method == 'minimax':
-                #score, move = self.minimax(game, self.search_depth)
-                pass
-            elif self.method == 'alphabeta':
-                pass
-            else:
-                logging.error('Unknown search method.')
-                raise NotImplementedError
+            best_move = None
+
+            for move in legal_moves:
+                logging.debug("move: " + str(move))
+                next_state = game.forecast_move(move)
+                if self.method == 'minimax':
+                    logging.debug("'minimax' search algorithm called.")
+                    _, best_move = self.minimax(next_state, self.search_depth)
+                elif self.method == 'alphabeta':
+                    raise NotImplementedError
+                else:
+                    logging.error('Unknown search method.')
+                    raise NotImplementedError
 
         except Timeout:
             logging.error("Timeout!")
 
         # Return the best move from the last completed search iteration
-        raise NotImplementedError
+        return best_move
 
     def minimax(self, game, depth, maximizing_player=True):
         """Implement the minimax search algorithm as described in the lectures.
@@ -186,9 +201,39 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
+        # evaluating current state of the board
+        curr_score = self.score(game, self)
+        curr_position = game.get_player_location(self)
+        opp_position = game.get_player_location(game.get_opponent(self))
+        logging.debug("My pos: {}; opponent pos: {}; score: {}".format(curr_position, opp_position, curr_score))
 
-        # TODO: finish this function!
-        #raise NotImplementedError
+        # if maximum depth reached
+        if depth == 0:
+            return curr_score, curr_position
+
+        # initial score: -infinity for maximizing layer; infinity - otherwise
+        best_score = -math.inf if maximizing_player else math.inf
+        best_move = (-1, -1)
+
+        legal_moves = game.get_legal_moves()
+        logging.debug("legal moves " + str(legal_moves))
+        for move in legal_moves:
+            next_state = game.forecast_move(move)
+
+            # updating score, calling 'minimax' recursively with depth decreased by 1 and reversing maximizing layer
+            new_score, _ = self.minimax(next_state, depth - 1, not maximizing_player)
+            if maximizing_player and new_score > best_score:
+                best_score = new_score
+                best_move = move
+            elif not maximizing_player and new_score < best_score:
+                best_score = new_score
+                best_move = move
+
+        if best_score == math.inf or best_score == -math.inf:
+            best_score = curr_score
+
+        logging.debug("Best move: " + str(best_move)+"; best score: "+str(best_score))
+        return best_score, best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"), maximizing_player=True):
         """Implement minimax search with alpha-beta pruning as described in the
