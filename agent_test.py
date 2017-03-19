@@ -441,6 +441,8 @@ class Project1Test(unittest.TestCase):
         has the same growth factor, the expansion and pruning must result in
         an exact number of expanded nodes.
         """
+
+        logging.basicConfig(level=logging.DEBUG)
         h, w = 101, 101  # board size
         starting_location = (50, 50)
         adversary_location = (0, 0)  # top left corner
@@ -495,6 +497,7 @@ class Project1Test(unittest.TestCase):
         unique nodes have been visited.
         """
 
+        logging.basicConfig(level=logging.DEBUG)
         class DynamicTimer():
             """Dynamic Timer allows the time limit to be changed after the
             timer is initialized so that the search timeout can be triggered
